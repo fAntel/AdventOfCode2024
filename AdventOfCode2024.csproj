@@ -9,10 +9,14 @@
 
   <ItemGroup>
     <None Remove="Days\Day01\input" />
+    <None Remove="Days\Day02\input" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Days\Day01\input">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Days\Day02\input">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

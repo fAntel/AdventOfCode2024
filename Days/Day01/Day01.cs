@@ -62,7 +62,7 @@ namespace AdventOfCode2024.Days.Day01
 
         private static IEnumerable<IOrderedEnumerable<int>> ReadLists()
         {
-            return File.ReadAllLines(Path.Combine(Environment.CurrentDirectory, "Days", "Day01", "input"))
+            return File.ReadAllLines(InputHelper.GetInputPath(1))
                 .Select(line => line.Split(' '))
                 .Select(line => line.Where(v => v.Length > 0))
                 .Select(values => values.Select(s => int.Parse(s)))
