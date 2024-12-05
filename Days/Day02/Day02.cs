@@ -27,7 +27,7 @@ namespace AdventOfCode2024.Days.Day02
 
         private static IEnumerable<IEnumerable<byte>> GetLevels()
         {
-            var lines = File.ReadAllLines(InputHelper.GetInputPath(2));
+            var lines = File.ReadLines(InputHelper.GetInputPath(2));
             var levels = lines.Select(lines => lines.Split(' ').Select(level => byte.Parse(level)));
             return levels;
         }
