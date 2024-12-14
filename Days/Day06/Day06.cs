@@ -9,7 +9,7 @@ namespace AdventOfCode2024.Days.Day06
 
         public string PartOne()
         {
-            string[] map = File.ReadAllLines(InputHelper.GetInputPath(6));
+            char[][] map = PreprareMap();
             FindStartingPosition(map, out int x, out int y, out Orientation orientation);
 
             ISet<Point> points = new HashSet<Point>();
@@ -25,12 +25,45 @@ namespace AdventOfCode2024.Days.Day06
 
         public string PartTwo()
         {
-            throw new NotImplementedException();
+            char[][] map = PreprareMap();
+            FindStartingPosition(map, out int startingPositionX, out int startingPositionY, out Orientation startingOrientation);
+
+            ISet<Point> points = new HashSet<Point>();
+            int x, y;
+            Orientation orientation;
+            ISet<Position> positions = new HashSet<Position>();
+            for (int i = 0; i < map.Length; ++i)
+            {
+                for (int j = 0; j < map[i].Length; ++j)
+                {
+                    if (map[i][j] == s_obstacle || (i == startingPositionY && j == startingPositionX))
+                        continue;
+
+                    map[i][j] = s_obstacle;
+                    x = startingPositionX; y = startingPositionY; orientation = startingOrientation;
+                    positions.Clear();
+                    Position position = new(x, y, orientation);
+                    do
+                    {
+                        positions.Add(position);
+                        SimulateStep(map, x, y, orientation, out x, out y, out orientation);
+                        position = new Position(x, y, orientation);
+                    } while (IsWithinMap(map, x, y) && !positions.Contains(position));
+
+                    if (IsWithinMap(map, x, y))
+                    {
+                        points.Add(new Point(j, i));
+                    }
+                    map[i][j] = '.';
+                }
+            }
+
+            return points.Count.ToString();
         }
 
-        private static bool IsWithinMap(string[] map, int x, int y) => x >= 0 && y >= 0 && x < map[0].Length && y < map.Length;
+        private static bool IsWithinMap(char[][] map, int x, int y) => x >= 0 && y >= 0 && x < map[0].Length && y < map.Length;
 
-        private static void SimulateStep(string[] map, int x, int y, Orientation orientation, out int newX, out int newY, out Orientation newOrientation)
+        private static void SimulateStep(char[][] map, int x, int y, Orientation orientation, out int newX, out int newY, out Orientation newOrientation)
         {
             newOrientation = orientation;
             newX = x;
@@ -80,7 +113,9 @@ namespace AdventOfCode2024.Days.Day06
             }
         }
 
-        private static void FindStartingPosition(string[] map, out int x, out int y, out Orientation orientation)
+        private static char[][] PreprareMap() => File.ReadAllLines(InputHelper.GetInputPath(6)).Select(line => line.ToCharArray()).ToArray();
+
+        private static void FindStartingPosition(char[][] map, out int x, out int y, out Orientation orientation)
         {
             x = 0;
             Orientation? t = null;
@@ -111,5 +146,22 @@ namespace AdventOfCode2024.Days.Day06
         };
 
         private enum Orientation { North, East, South, West }
+
+        private readonly struct Position(int x, int y, Orientation orientation)
+        {
+            private readonly int x = x;
+            private readonly int y = y;
+            private readonly Orientation orientation = orientation;
+
+            public override readonly bool Equals(object? obj)
+            {
+                return obj is Position position &&
+                       x == position.x &&
+                       y == position.y &&
+                       orientation == position.orientation;
+            }
+
+            public override readonly int GetHashCode() => HashCode.Combine(x, y, orientation);
+        }
     }
 }
