@@ -1,10 +1,4 @@
 ﻿using AdventOfCode2024.Common;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AdventOfCode2024.Days.Day12
 {
@@ -27,7 +21,19 @@ namespace AdventOfCode2024.Days.Day12
 
         public string PartTwo()
         {
-            return "";
+            string[] map = File.ReadAllLines(InputHelper.GetInputPath(12));
+            int height = map.Length;
+            int width = map[0].Length;
+
+            List<ISet<(int, int)>> regions = FindRegions(map);
+
+            ulong result = 0;
+            foreach (ISet<(int, int)> region in regions)
+            {
+                result += (ulong)region.Count * CalculateRegionNumberOfSides(region, height, width);
+            }
+
+            return result.ToString();
         }
 
         private static List<ISet<(int, int)>> FindRegions(string[] map)
@@ -91,6 +97,110 @@ namespace AdventOfCode2024.Days.Day12
             }
 
             return result;
+        }
+
+        private static ulong CalculateRegionNumberOfSides(ISet<(int, int)> region, int height, int width)
+        {
+            if (region.Count < 3)
+                return 4;
+
+            ulong result = 0;
+            Dictionary<(int, int), CheckedSides> points = new(region.Select(point => new KeyValuePair<(int, int), CheckedSides>(point, new CheckedSides())));
+
+            CheckedSides sides;
+            foreach ((int x, int y) in region)
+            {
+                sides = points[(x, y)];
+                if (!sides.Left && TraverseVerticalSide(region, height, points, x, y, x - 1, checkedSides => checkedSides.Left = true))
+                    result += 1;
+
+                if (!sides.Top && TraverseHorizontalSide(region, width, points, x, y, y - 1, checkedSides => checkedSides.Top = true))
+                    result += 1;
+
+                if (!sides.Right && TraverseVerticalSide(region, height, points, x, y, x + 1, checkedSides => checkedSides.Right = true))
+                    result += 1;
+
+                if (!sides.Bottom && TraverseHorizontalSide(region, width, points, x, y, y + 1, checkedSides => checkedSides.Bottom = true))
+                    result += 1;
+
+                points[(x, y)].SetAllChecked();
+            }
+
+            return result;
+        }
+
+        private static bool TraverseVerticalSide(
+            ISet<(int, int)> region, int height, Dictionary<(int, int), CheckedSides> points,
+            int x, int y, int outsideX, Action<CheckedSides> sideUpdater
+        )
+        {
+            if (!region.Contains((outsideX, y)))
+            {
+                for (int j = y - 1; j >= 0; --j)
+                {
+                    if (!region.Contains((x, j)))
+                        break;
+
+                    if (!region.Contains((outsideX, j))) sideUpdater(points[(x, j)]);
+                    else break;
+                }
+                for (int j = y + 1; j < height; ++j)
+                {
+                    if (!region.Contains((x, j)))
+                        break;
+
+                    if (!region.Contains((outsideX, j))) sideUpdater(points[(x, j)]);
+                    else break;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        private static bool TraverseHorizontalSide(
+            ISet<(int, int)> region, int width, Dictionary<(int, int), CheckedSides> points,
+            int x, int y, int outsideY, Action<CheckedSides> sideUpdater
+        )
+        {
+            if (!region.Contains((x, outsideY)))
+            {
+                for (int i = x - 1; i >= 0; --i)
+                {
+                    if (!region.Contains((i, y)))
+                        break;
+
+                    if (!region.Contains((i, outsideY))) sideUpdater(points[(i, y)]);
+                    else break;
+                }
+                for (int i = x + 1; i < width; ++i)
+                {
+                    if (!region.Contains((i, y)))
+                        break;
+
+                    if (!region.Contains((i, outsideY))) sideUpdater(points[(i, y)]);
+                    else break;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        private class CheckedSides
+        {
+            public bool Left = false;
+            public bool Top = false;
+            public bool Right = false;
+            public bool Bottom = false;
+
+            public bool IsAllChecked() => Left && Top && Right && Bottom;
+
+            public void SetAllChecked()
+            {
+                Left = true;
+                Top = true;
+                Right = true;
+                Bottom = true;
+            }
         }
     }
 }
